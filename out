@@ -20,7 +20,7 @@ function evaluate {
 payload=$(mktemp /tmp/resource-in.XXXXXX)
 cat > "${payload}" <&0
 
-message=$(evaluate "$(jq -r '.params.message // ""' < "${payload}")")
+message=$(echo $(evaluate "$(jq -r '.params.message // ""' < "${payload}")") | sed 's/\\//g')
 
 webhook_url="$(jq -r '.source.url' < "${payload}")"
 redacted_webhook_url=$(echo "${webhook_url}" | sed -e 's#/\([^/\.]\{2\}\)[^/.]\{5,\}\([^/.]\{2\}\)#/\1…\2#g' | jq -R .)
@@ -41,4 +41,3 @@ EOF
 )"
 
 echo "$metadata"  >&3
-

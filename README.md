@@ -22,17 +22,6 @@ $BUILD_TEAM_NAME
 $ATC_EXTERNAL_URL
 ```
 
-## STATUS
-
-* Alpha Quality
-* Works - meets my specific needs
-
-
-## TODO
-
-* Make `potentialAction` button/link optional
-
-
 ## SETUP
 
 1. Open the Microsoft Teams UI.
@@ -87,28 +76,32 @@ example of an alert in a pull-request job
     trigger: true
   - task: test-pr
     file: {{mypipeline}}-pull-request/pipeline/test-pr.yml
-    on_success:
-      put: alert
-      params:
-        text: |
-          pull request tested: with no errors
-        title: {{mypipeline}} Pull Request Tested
-        actionName: {{mypipeline}} Pipeline
-        actionTarget: $ATC_EXTERNAL_URL/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME
     on_failure:
-      put: alert
+      put: teams-notification
       params:
-        color: EA4300
-        text: |
-          pull request tested: **WITH ERRORS**
-        title: {{mypipeline}} Pull Request Tested
-        actionName: {{mypipeline}} Pipeline
-        actionTarget: $ATC_EXTERNAL_URL/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME
+        message: |
+          "{
+            \"@type\": \"MessageCard\",
+            \"@context\": \"http://schema.org/extensions\",
+            \"summary\": \"CF Smoke Test Pipeline Failure\",
+            \"themeColor\": \"FF0000\",
+            \"title\": \"CF Smoke Test Pipeline Failure\",
+            \"sections\": [
+              {
+                \"text\": \"CF Smoke Tests pipeline failure at the $BUILD_PIPELINE_NAME/$BUILD_JOB_NAME job.\",
+                \"facts\": [
+                  { \"name\": \"Team:\", \"value\": \"$BUILD_TEAM_NAME\" },
+                  { \"name\": \"Pipeline Name:\", \"value\": \"$BUILD_PIPELINE_NAME\" },
+                  { \"name\": \"Job Name:\", \"value\": \"$BUILD_JOB_NAME\" },
+                  { \"name\": \"Build:\", \"value\": \"$BUILD_NAME\" },
+                  { \"name\": \"Link:\", \"value\": \"[$ATC_EXTERNAL_URL:8080/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME]($ATC_EXTERNAL_URL:8080/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME)\" }
+                ]
+              },
+              {
+                \"activitySubtitle\": \"Pipeline Failure.\"
+              }
+            ]
+          }"
 ```
 
-* `text`: *Required.* Text of the message to send - markdown supported
-* `title`: *Optional.*
-* `color`: *Optional.* Sidebar color (doesn't appear to be implemented yet in the Teams UI)
-* `actionName`: *Optional.* Text on the button/link (shows up as a link though the Teams docs show a button)
-* `actionTarget`: *Optional.* URL to connect to the button/link
-
+* `message`: *Required.* JSON of the message to send - must be formatted with proper escape characters for quotes to have a valid payload
