@@ -20,24 +20,13 @@ function evaluate {
 payload=$(mktemp /tmp/resource-in.XXXXXX)
 cat > "${payload}" <&0
 
-format="markdown"
-color="$(jq -r '.params.color // "00EA43"' < "${payload}")"
-
-actionName=$(evaluate "$(jq -r '.params.actionName // "Open Concourse"' < "${payload}")")
-
-actionTarget=$(evaluate "$(jq -r '.params.actionTarget // "https://concourse.ci"' < "${payload}")")
-
-title=$(evaluate "$(jq -r '.params.title // "Concourse CI"' < "${payload}")")
-
-text=$(evaluate "$(jq -r '.params.text // "NO MSG"' < "${payload}")")
-
-body="{\"TextFormat\": \"${format}\", \"text\": \"${text}\", \"title\": \"${title}\", \"potentialAction\": [{\"@context\": \"https://schema.org\", \"@type\": \"ViewAction\", \"name\": \"${actionName}\", \"target\": [\"${actionTarget}\"]}]}"
+message=${message}
 
 webhook_url="$(jq -r '.source.url' < "${payload}")"
 redacted_webhook_url=$(echo "${webhook_url}" | sed -e 's#/\([^/\.]\{2\}\)[^/.]\{5,\}\([^/.]\{2\}\)#/\1…\2#g' | jq -R .)
 
 url_path="$(echo ${webhook_url} | sed -e "s/https\{0,1\}:\/\/[^\/]*\(\/[^?&#]*\).*/\1/")"
-curl ${CURL_OPTION} -d "${body}" "${webhook_url}" 2>&1 | sed -e "s#${url_path}#***WEBHOOK URL REDACTED***#g"
+curl ${CURL_OPTION} -d "${message}" "${webhook_url}" 2>&1 | sed -e "s#${url_path}#***WEBHOOK URL REDACTED***#g"
 
 timestamp=$(date +%s)
 metadata="$(cat <<EOF
