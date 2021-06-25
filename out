@@ -39,3 +39,6 @@ metadata="$(cat <<EOF
 }
 EOF
 )"
+
+#echo "$metadata"  >&3
+echo "$metadata"
