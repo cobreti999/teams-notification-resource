@@ -5,7 +5,6 @@ CURL_OPTION="-v"
 set -e
 exec 3>&1
 exec 1>&2
-#set -x
 
 function evaluate {
   __var=$1
@@ -28,17 +27,14 @@ redacted_webhook_url=$(echo "${webhook_url}" | sed -e 's#/\([^/\.]\{2\}\)[^/.]\{
 url_path="$(echo ${webhook_url} | sed -e "s/https\{0,1\}:\/\/[^\/]*\(\/[^?&#]*\).*/\1/")"
 curl ${CURL_OPTION} -d "${message}" "${webhook_url}" 2>&1 | sed -e "s#${url_path}#***WEBHOOK URL REDACTED***#g"
 
-timestamp=$(date +%s)
 metadata="$(cat <<EOF
 {
-  "version": {"timestamp": "${timestamp}"},
+  "version": {},
   "metadata": [
-    {"name": "url", "value": ${redacted_webhook_url}},
-    {"name": "BUILD_PIPELINE_NAME", "value": "${BUILD_PIPELINE_NAME}"}
+    {"name": "", "value": ""}
   ]
 }
 EOF
 )"
 
-#echo "$metadata"  >&3
-echo "$metadata"
+echo "$metadata"  >&3

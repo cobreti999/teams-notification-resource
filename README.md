@@ -62,7 +62,7 @@ resource_types:
 - name: teams-notification
   type: docker-image
   source:
-    repository: navicore/teams-notification-resource
+    repository: cobreti999/teams-notification-resource
     tag: latest
 ```
 
